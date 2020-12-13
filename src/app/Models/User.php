@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -30,6 +31,8 @@ class User extends Authenticatable
         'verification_token',
         'admin',
     ];
+
+    protected $table = 'users';
 
     /**
      * The attributes that should be hidden for arrays.
@@ -63,6 +66,6 @@ class User extends Authenticatable
 
     public static function generateVerificationToken()
     {
-        return str_random(40);
+        return Str::random(40);
     }
 }
