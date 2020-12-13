@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -26,9 +27,17 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        //
+        $data = $request->all();
+        $data['password'] = \bcrypt($request->password);
+        $data['verified'] = User::UNVERIFIED_USER;
+        $data['verification_token'] = User::generateVerificationToken();
+        $data['admin'] = User::REGULAR_USER;
+
+        $user = User::create($data);
+
+        return response()->json(['data' => $user], 201);
     }
 
     /**
