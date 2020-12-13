@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreRequest;
+use App\Http\Requests\User\UpdateRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -60,9 +61,45 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+        
+        if ($request->has('email') && $user->email != $request->email) {
+            $user->verified = User::UNVERIFIED_USER;
+            $user->verification_token = User::generateVerificationToken();
+            $user->email = $request->email;
+        }
+
+        if ($request->has('password')) {
+            $user->password = \bcrypt($request->password);
+        }
+
+        if ($request->has('admin')) {
+            if (!$user->isVerified()) {
+                return response()->json([
+                    'error' => 'Only verified users may modify the admin field.',
+                    'code' => 409
+                ], 409);
+            }
+
+            $user->admin = $request->admin;
+        }
+
+        if (!$user->isDirty()) {
+            return response()->json([
+                'error' => 'A valid entry is required to update.',
+                'code' => 422
+            ], 422);
+        }
+
+        $user->save();
+
+        return response()->json(['data' => $user], 200);
     }
 
     /**
